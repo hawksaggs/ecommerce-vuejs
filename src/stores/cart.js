@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { unref } from "vue";
 
 export const useCartStore = defineStore("cart", {
   state: () => {
@@ -11,7 +12,13 @@ export const useCartStore = defineStore("cart", {
       return state.cart;
     },
     getCartLength(state) {
-      return state.cart.products.length;
+      return state.cart?.products?.length || 0;
+    },
+    totalCartValue(state) {
+      return state.cart?.products?.reduce((prev, curr) => {
+        prev += curr.price;
+        return prev;
+      }, 0);
     },
   },
   actions: {
@@ -32,7 +39,12 @@ export const useCartStore = defineStore("cart", {
         this.cart = cart;
       }
     },
-    async addToCart({ productId, quantity }) {
+    async addToCart({ productId, quantity, selectedSize, selectedColor }) {
+      console.log(
+        `selected Size: ${unref(selectedSize)}, selected color: ${unref(
+          selectedColor
+        )}`
+      );
       const res = await fetch(`${import.meta.env.VITE_API_URL}/carts`, {
         method: "POST",
         body: JSON.stringify({
@@ -41,8 +53,15 @@ export const useCartStore = defineStore("cart", {
           products: [{ productId, quantity }],
         }),
       });
-      const response = await res.json();
+      const response = await res.text();
+      console.log("addToCart: ", response);
       await this.fetchCart();
+    },
+    async removeItem({ productId }) {
+      const products = this.cart?.products.filter(
+        (item) => item.id !== productId
+      );
+      this.cart.products = products;
     },
   },
 });

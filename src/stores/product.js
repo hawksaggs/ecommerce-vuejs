@@ -11,9 +11,6 @@ export const useProductStore = defineStore("products", {
     getProducts(state) {
       return state.products;
     },
-    getProductById(id) {
-      return state.productMap[id];
-    },
   },
   actions: {
     async fetchProducts() {
@@ -23,7 +20,7 @@ export const useProductStore = defineStore("products", {
 
     async fetchSingleProduct(id) {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/products/${this.productId}`
+        `${import.meta.env.VITE_API_URL}/products/${id}`
       );
       const product = await res.json();
       product.breadcrumbs = [
@@ -51,7 +48,7 @@ export const useProductStore = defineStore("products", {
         "Pre-washed & pre-shrunk",
         "Ultra-soft 100% cotton",
       ];
-      this.productMap[id] = product;
+      this.product = product;
     },
 
     async setProduct(product) {

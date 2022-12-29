@@ -2,20 +2,23 @@
 import { StarIcon } from "@heroicons/vue/20/solid";
 import { RadioGroup, RadioGroupLabel, RadioGroupOption } from "@headlessui/vue";
 import ProductFeature from "../components/ProductFeature.vue";
-import { useCartStore, useAuthStore } from "@/stores";
-import { onMounted, ref, watch } from "vue";
+import { useCartStore, useAuthStore, useProductStore } from "@/stores";
+import { onMounted, ref, unref } from "vue";
 import { useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
 
 const router = useRouter();
 
 const cartStore = useCartStore();
 const authStore = useAuthStore();
+const productStore = useProductStore();
 const props = defineProps({
   productId: { Number, required: true },
 });
-const product = ref(null);
+// const product = ref(null);
 const selectedColor = ref(null);
 const selectedSize = ref(null);
+const { product } = storeToRefs(productStore);
 
 onMounted(async () => {
   await initData();
@@ -24,42 +27,15 @@ onMounted(async () => {
 async function cartAdd() {
   if (!authStore.isUserLoggedIn) router.push({ name: "signin" });
   await cartStore.addToCart({
-    productId: product.id,
+    productId: unref(product).id,
     quantity: 1,
+    selectedColor: unref(selectedColor).name,
+    selectedSize: unref(selectedSize).name,
   });
 }
 
 async function initData() {
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/products/${props.productId}`
-  );
-  const productData = await res.json();
-  productData.breadcrumbs = [
-    { id: 1, name: "Men", href: "#" },
-    { id: 2, name: "Clothing", href: "#" },
-  ];
-  productData.colors = [
-    { name: "White", class: "bg-white", selectedClass: "ring-gray-400" },
-    { name: "Gray", class: "bg-gray-200", selectedClass: "ring-gray-400" },
-    { name: "Black", class: "bg-gray-900", selectedClass: "ring-gray-900" },
-  ];
-  productData.sizes = [
-    { name: "XXS", inStock: false },
-    { name: "XS", inStock: true },
-    { name: "S", inStock: true },
-    { name: "M", inStock: true },
-    { name: "L", inStock: true },
-    { name: "XL", inStock: true },
-    { name: "2XL", inStock: true },
-    { name: "3XL", inStock: true },
-  ];
-  productData.highlights = [
-    "Hand cut and sewn locally",
-    "Dyed with our proprietary colors",
-    "Pre-washed & pre-shrunk",
-    "Ultra-soft 100% cotton",
-  ];
-  product.value = productData;
+  await productStore.fetchSingleProduct(props.productId);
   selectedColor.value = product?.value?.colors[0];
   selectedSize.value = product?.value?.sizes[2];
 }

@@ -17,14 +17,21 @@ import {
 import { ref, onMounted } from "vue";
 import Cart from "./Cart.vue";
 import { useAuthStore } from "@/stores";
+import { useCartStore } from "@/stores";
+import { storeToRefs } from "pinia";
 
-const navigation = ref([
+const initialNav = [
   { name: "Home", slug: "home", current: true },
 
   { name: "Checkout", slug: "checkout", current: false },
-]);
+];
+
+const navigation = ref(initialNav);
 const open = ref(false);
 const authStore = useAuthStore();
+const cartStore = storeToRefs(useCartStore());
+
+const { getCartLength } = cartStore;
 
 onMounted(() => {
   if (!authStore.isUserLoggedIn) {
@@ -36,6 +43,11 @@ onMounted(() => {
     );
   }
 });
+
+async function logout() {
+  await authStore.logout();
+  navigation.value = initialNav;
+}
 
 function toggleCart() {
   open.value = !open.value;
@@ -67,7 +79,7 @@ export default {
     as="nav"
     class="bg-gray-800"
     v-slot="{ open }"
-    v-if="$route.meta.showHeader !== false"
+    v-if="$route.meta.showHeader !== false && navigation"
   >
     <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
       <div class="relative flex h-16 items-center justify-between">
@@ -84,18 +96,20 @@ export default {
         <div
           class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start"
         >
-          <div class="flex flex-shrink-0 items-center">
-            <img
-              class="block h-8 w-auto lg:hidden"
-              src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-              alt="Your Company"
-            />
-            <img
-              class="hidden h-8 w-auto lg:block"
-              src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-              alt="Your Company"
-            />
-          </div>
+          <RouterLink :to="{ name: 'home' }">
+            <div class="flex flex-shrink-0 items-center">
+              <img
+                class="block h-8 w-auto lg:hidden"
+                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                alt="Your Company"
+              />
+              <img
+                class="hidden h-8 w-auto lg:block"
+                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                alt="Your Company"
+              />
+            </div>
+          </RouterLink>
           <div class="hidden sm:ml-6 sm:block">
             <div class="flex space-x-4">
               <RouterLink
@@ -106,12 +120,12 @@ export default {
               >
                 {{ item.name }}
               </RouterLink>
-              <a
+              <!-- <a
                 v-if="authStore.isUserLoggedIn"
                 @click="authStore.logout"
                 class="px-3 py-2 rounded-md text-sm font-medium"
                 >Logout
-              </a>
+              </a> -->
               <!-- <a
                 v-for="item in navigation"
                 :key="item.name"
@@ -137,17 +151,22 @@ export default {
             @click="toggleCart"
           >
             <span class="sr-only">Cart</span>
+            <div
+              class="inline-flex absolute -top-1 justify-center items-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+            >
+              {{ getCartLength }}
+            </div>
             <ShoppingCartIcon class="h-6 w-6" aria-hidden="true" />
           </button>
 
-          <button
+          <!-- <button
             type="button"
             class="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
             v-if="authStore.isUserLoggedIn"
           >
             <span class="sr-only">View notifications</span>
             <BellIcon class="h-6 w-6" aria-hidden="true" />
-          </button>
+          </button> -->
 
           <!-- Profile dropdown -->
           <Menu as="div" class="relative ml-3" v-if="authStore.isUserLoggedIn">
@@ -201,6 +220,7 @@ export default {
                       active ? 'bg-gray-100' : '',
                       'block px-4 py-2 text-sm text-gray-700',
                     ]"
+                    @click="logout"
                     >Sign out</a
                   >
                 </MenuItem>

@@ -11,9 +11,9 @@ import { useCartStore } from "@/stores/cart";
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 
-const { cart } = storeToRefs(useCartStore());
-const { fetchCart } = useCartStore();
-// const cart = ref(cart);
+const { cart, totalCartValue } = storeToRefs(useCartStore());
+const { fetchCart, removeItem } = useCartStore();
+
 onMounted(async () => {
   await fetchCart();
 });
@@ -145,6 +145,9 @@ export default {
                                   <button
                                     type="button"
                                     class="font-medium text-indigo-600 hover:text-indigo-500"
+                                    @click="
+                                      removeItem({ productId: product.id })
+                                    "
                                   >
                                     Remove
                                   </button>
@@ -162,7 +165,7 @@ export default {
                       class="flex justify-between text-base font-medium text-gray-900"
                     >
                       <p>Subtotal</p>
-                      <p>$262.00</p>
+                      <p>$ {{ totalCartValue }}</p>
                     </div>
                     <p class="mt-0.5 text-sm text-gray-500">
                       Shipping and taxes calculated at checkout.
