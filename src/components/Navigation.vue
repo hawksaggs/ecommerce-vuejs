@@ -33,20 +33,20 @@ const cartStore = storeToRefs(useCartStore());
 
 const { getCartLength } = cartStore;
 
-onMounted(() => {
-  if (!authStore.isUserLoggedIn) {
-    navigation.value.push(
-      ...[
-        { name: "SignUp", slug: "signup", current: false },
-        { name: "SignIn", slug: "signin", current: false },
-      ]
-    );
-  }
-});
+// onMounted(() => {
+//   if (!authStore.isUserLoggedIn) {
+//     navigation.value.push(
+//       ...[
+//         { name: "SignUp", slug: "signup", current: false },
+//         { name: "SignIn", slug: "signin", current: false },
+//       ]
+//     );
+//   }
+// });
 
 async function logout() {
   await authStore.logout();
-  navigation.value = initialNav;
+  // navigation.value = initialNav;
 }
 
 function toggleCart() {
@@ -159,6 +159,14 @@ export default {
             <ShoppingCartIcon class="h-6 w-6" aria-hidden="true" />
           </button>
 
+          <RouterLink
+            :key="signin"
+            :to="{ name: 'signin' }"
+            class="px-3 py-2 rounded-md text-sm font-medium"
+            v-if="!authStore.isUserLoggedIn"
+          >
+           SignIn
+          </RouterLink>
           <!-- <button
             type="button"
             class="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
